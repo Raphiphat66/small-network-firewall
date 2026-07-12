@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, Navigate } from 'react-router-dom';
 import Dashboard from './pages/Dashboard';
 import Logs from './pages/Logs';
@@ -10,49 +10,72 @@ import Settings from './pages/Settings';
 
 function App() {
   const [user, setUser] = useState(null);
+  const [dark, setDark] = useState(() => {
+    return localStorage.getItem('theme') === 'dark';
+  });
 
-  const handleLogin = (username) => {
-    setUser(username);
-  };
-
-  const handleLogout = () => {
-    setUser(null);
-  };
+  // ใส่/ถอด class "dark" ที่ <html> เมื่อ toggle
+  useEffect(() => {
+    if (dark) {
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+    }
+  }, [dark]);
 
   if (!user) {
-    return <Login onLogin={handleLogin} />;
+    return <Login onLogin={setUser} dark={dark} />;
   }
+
+  const navStyle = {
+    backgroundColor: 'var(--nav-bg)',
+    padding: '12px 30px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderBottom: '1px solid var(--nav-border)',
+    boxShadow: '0 1px 4px rgba(0,0,0,0.08)',
+    position: 'sticky',
+    top: 0,
+    zIndex: 100,
+    transition: 'background 0.3s ease'
+  };
+
+  const linkStyle = {
+    color: 'var(--text-secondary)',
+    textDecoration: 'none',
+    fontSize: '14px',
+    transition: 'color 0.2s'
+  };
 
   return (
     <Router>
-      <div style={{ fontFamily: 'Inter, Arial, sans-serif' }}>
+      <div style={{ fontFamily: 'var(--font-sans)' }}>
 
-        <nav style={{
-          backgroundColor: '#ffffff',
-          padding: '12px 30px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          borderBottom: '1px solid #e2e8f0',
-          boxShadow: '0 1px 4px rgba(0,0,0,0.08)'
-        }}>
+        <nav style={navStyle}>
           <div style={{ display: 'flex', gap: '28px', alignItems: 'center' }}>
-            <span style={{ color: '#1a56db', fontWeight: 'bold', fontSize: '18px' }}>
+            <span style={{ color: 'var(--fill-accent)', fontWeight: 'bold', fontSize: '18px' }}>
               🔥 Firewall Monitor
             </span>
-            <Link to="/" style={{ color: '#374151', textDecoration: 'none', fontSize: '14px' }}>Dashboard</Link>
-            <Link to="/logs" style={{ color: '#374151', textDecoration: 'none', fontSize: '14px' }}>Logs</Link>
-            <Link to="/blocklist" style={{ color: '#374151', textDecoration: 'none', fontSize: '14px' }}>Block List</Link>
-            <Link to="/rules" style={{ color: '#374151', textDecoration: 'none', fontSize: '14px' }}>Rules</Link>
-            <Link to="/website-blocks" style={{ color: '#374151', textDecoration: 'none', fontSize: '14px' }}>Website Block</Link>
-            <Link to="/settings" style={{ color: '#374151', textDecoration: 'none' }}>Settings</Link>
+            <Link to="/" style={linkStyle}>Dashboard</Link>
+            <Link to="/logs" style={linkStyle}>Logs</Link>
+            <Link to="/blocklist" style={linkStyle}>Block List</Link>
+            <Link to="/rules" style={linkStyle}>Rules</Link>
+            <Link to="/website-blocks" style={linkStyle}>Website Block</Link>
+            <Link to="/settings" style={linkStyle}>Settings</Link>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-            <span style={{ color: '#374151', fontSize: '14px' }}>👤 {user}</span>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <span style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>👤 {user}</span>
+
+            
+
             <button
-              onClick={handleLogout}
+              onClick={() => setUser(null)}
               style={{
-                backgroundColor: '#ef4444',
+                backgroundColor: 'var(--fill-danger)',
                 color: 'white',
                 border: 'none',
                 padding: '6px 16px',
@@ -63,10 +86,36 @@ function App() {
             >
               ออกจากระบบ
             </button>
+            
+            {/* Dark/Light Toggle */}
+            <button
+              onClick={() => setDark(d => !d)}
+              title={dark ? 'เปลี่ยนเป็น Light' : 'เปลี่ยนเป็น Dark'}
+              style={{
+                background: 'var(--surface-1)',
+                border: '1px solid var(--border-strong)',
+                borderRadius: '20px',
+                padding: '4px 10px',
+                cursor: 'pointer',
+                fontSize: '16px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px',
+                color: 'var(--text-primary)',
+                transition: 'background 0.2s'
+              }}
+            >
+              {dark ? '☀️' : '🌙'}
+            </button>
           </div>
         </nav>
 
-        <div style={{ padding: '24px', backgroundColor: '#f8fafc', minHeight: '100vh' }}>
+        <div style={{
+          padding: '24px',
+          backgroundColor: 'var(--surface-0)',
+          minHeight: '100vh',
+          transition: 'background 0.3s ease'
+        }}>
           <Routes>
             <Route path="/" element={<Dashboard />} />
             <Route path="/logs" element={<Logs />} />
