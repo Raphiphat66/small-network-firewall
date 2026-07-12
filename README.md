@@ -1,4 +1,4 @@
-# 🔥 Small Firewall Network System
+# Small Firewall Network System
 ### ระบบไฟร์วอลล์สำหรับเครือข่ายขนาดเล็ก
 
 A real-time **Intrusion Detection and Prevention System (IDS/IPS)** built from scratch using Python and Scapy, with a React.js web dashboard for monitoring and managing network security.
@@ -7,9 +7,9 @@ A real-time **Intrusion Detection and Prevention System (IDS/IPS)** built from s
 
 ---
 
-## ✨ Features
+##  Features
 
-### 🛡️ Attack Detection & Prevention
+###  Attack Detection & Prevention
 - Detects and blocks **5 types of attacks** automatically
   - ICMP Flood
   - SYN Flood
@@ -20,26 +20,26 @@ A real-time **Intrusion Detection and Prevention System (IDS/IPS)** built from s
 - **Auto-unblock** after configurable duration (default 30 minutes)
 - **IP Whitelist** to prevent blocking trusted addresses
 
-### 📊 Web Dashboard
+###  Web Dashboard
 - Real-time traffic monitoring with charts
 - Attack history with WARNING/BLOCK indicators
 - Blocked IP management (manual block/unblock)
 - Firewall rule management (add/delete iptables rules)
 - Adjustable detection thresholds via UI
 
-### 🚫 Advanced Firewall Features
+###  Advanced Firewall Features
 - **MAC Address Filtering**
 - **Destination IP Filtering**
 - **Logging Rules** (stores to `/var/log/syslog`)
 - **DNS-based Website Blocking** — blocks by domain name (not IP), immune to IP changes
 - **Custom iptables rules** with direction (INPUT/OUTPUT/FORWARD) and action (DROP/ACCEPT/REJECT)
 
-### 📧 Notifications
+###  Notifications
 - Automated **Gmail email alerts** for both WARNING and BLOCK events
 
 ---
 
-## 🏗️ Architecture
+##  Architecture
 
 ```
 Internet
@@ -64,7 +64,7 @@ VM Attacker   192.168.1.3   (simulates attacker)
 
 ---
 
-## 🛠️ Tech Stack
+##  Tech Stack
 
 | Layer | Technology |
 |-------|-----------|
@@ -79,7 +79,7 @@ VM Attacker   192.168.1.3   (simulates attacker)
 
 ---
 
-## 📁 Project Structure
+##  Project Structure
 
 ```
 firewall_project/          ← Backend (on Firewall VM)
@@ -105,7 +105,7 @@ firewall-frontend/         ← Frontend (React.js)
 
 ---
 
-## 🗄️ Database Schema
+##  Database Schema
 
 ```sql
 packet_entry   ← All captured packets
@@ -118,7 +118,7 @@ user           ← Admin login credentials
 
 ---
 
-## 🚀 Installation
+##  Installation
 
 ### Prerequisites
 - VirtualBox with Ubuntu 24.04 LTS
@@ -174,7 +174,7 @@ Open `http://localhost:3000` — Login with `admin` / `admin1234`
 
 ---
 
-## 🌐 API Endpoints
+##  API Endpoints
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
@@ -196,7 +196,7 @@ Open `http://localhost:3000` — Login with `admin` / `admin1234`
 
 ---
 
-## 🔬 Attack Simulation (Testing)
+##  Attack Simulation (Testing)
 
 Run these commands from the **Attacker VM** (`192.168.1.3`)
 
@@ -219,7 +219,7 @@ hydra -l admin -P passwords.txt 192.168.1.1 ssh -t 4
 
 ---
 
-## ⚙️ Detection Thresholds
+##  Detection Thresholds
 
 Thresholds are configurable from the web dashboard under **Settings**.
 
@@ -233,7 +233,7 @@ Thresholds are configurable from the web dashboard under **Settings**.
 
 ---
 
-## ⚠️ Limitations
+##  Limitations
 
 This system is designed for **small networks** (home, small office, café). It is **not** suitable for:
 - Enterprise-scale networks
@@ -244,7 +244,7 @@ This system is designed for **small networks** (home, small office, café). It i
 
 ---
 
-## 🔮 Future Improvements
+##  Future Improvements
 
 - [ ] Anomaly Detection (behavior-based, not rule-based)
 - [ ] Machine Learning for unknown attack patterns
@@ -255,12 +255,12 @@ This system is designed for **small networks** (home, small office, café). It i
 
 ---
 
-## 📄 License
+##  License
 
 This project is for educational purposes as part of a senior thesis.
 
 ---
 
-## 👨‍💻 Author
+##  Author
 
 Developed as a Senior Project in partial fulfillment of the requirements for a Bachelor's Degree in Computer Engineering.
