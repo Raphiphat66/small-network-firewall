@@ -1,70 +1,266 @@
-# Getting Started with Create React App
+# 🔥 Small Firewall Network System
+### ระบบไฟร์วอลล์สำหรับเครือข่ายขนาดเล็ก
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A real-time **Intrusion Detection and Prevention System (IDS/IPS)** built from scratch using Python and Scapy, with a React.js web dashboard for monitoring and managing network security.
 
-## Available Scripts
+> Senior Project — Computer Science / Information Technology
 
-In the project directory, you can run:
+---
 
-### `npm start`
+## ✨ Features
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+### 🛡️ Attack Detection & Prevention
+- Detects and blocks **5 types of attacks** automatically
+  - ICMP Flood
+  - SYN Flood
+  - UDP Flood
+  - Port Scan
+  - Brute Force (SSH)
+- **2-level alert system** — Warning → Block (reduces false positives)
+- **Auto-unblock** after configurable duration (default 30 minutes)
+- **IP Whitelist** to prevent blocking trusted addresses
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+### 📊 Web Dashboard
+- Real-time traffic monitoring with charts
+- Attack history with WARNING/BLOCK indicators
+- Blocked IP management (manual block/unblock)
+- Firewall rule management (add/delete iptables rules)
+- Adjustable detection thresholds via UI
 
-### `npm test`
+### 🚫 Advanced Firewall Features
+- **MAC Address Filtering**
+- **Destination IP Filtering**
+- **Logging Rules** (stores to `/var/log/syslog`)
+- **DNS-based Website Blocking** — blocks by domain name (not IP), immune to IP changes
+- **Custom iptables rules** with direction (INPUT/OUTPUT/FORWARD) and action (DROP/ACCEPT/REJECT)
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+### 📧 Notifications
+- Automated **Gmail email alerts** for both WARNING and BLOCK events
 
-### `npm run build`
+---
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+## 🏗️ Architecture
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+```
+Internet
+    ↓
+Firewall Server (Ubuntu Linux)
+├── Python + Scapy      ← Packet capture & analysis
+├── iptables            ← Packet filtering & blocking
+├── dnsmasq             ← DNS-based website blocking
+├── MySQL               ← Data storage
+└── FastAPI             ← REST API backend
+    ↓
+React.js Dashboard (Web Browser)
+```
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+### Network Setup
 
-### `npm run eject`
+```
+VM Firewall   192.168.1.1   (enp0s3 = WAN, enp0s8 = LAN)
+VM Client     192.168.1.2   (simulates regular user)
+VM Attacker   192.168.1.3   (simulates attacker)
+```
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+---
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+## 🛠️ Tech Stack
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+| Layer | Technology |
+|-------|-----------|
+| Packet Capture | Python 3, Scapy |
+| Firewall | iptables (Linux netfilter) |
+| DNS Blocking | dnsmasq |
+| Backend API | FastAPI, Uvicorn |
+| Database | MySQL 8.0 |
+| Frontend | React.js, Recharts |
+| Notifications | Gmail SMTP |
+| Infrastructure | VirtualBox, Ubuntu 24.04 LTS |
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+---
 
-## Learn More
+## 📁 Project Structure
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+```
+firewall_project/          ← Backend (on Firewall VM)
+├── database.py            ← MySQL connection helper
+├── detector.py            ← Core IDS/IPS — packet capture & analysis
+├── firewall.py            ← iptables management
+├── notifier.py            ← Email alert system
+├── auto_unblock.py        ← Auto-unblock IPs after timeout
+├── api.py                 ← FastAPI REST API
+└── main.py                ← Entry point
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+firewall-frontend/         ← Frontend (React.js)
+└── src/
+    ├── App.js             ← Router + Login gate
+    └── pages/
+        ├── Dashboard.js   ← Real-time stats & charts
+        ├── Logs.js        ← Attack history
+        ├── BlockList.js   ← Blocked IP management
+        ├── Rules.js       ← iptables rule management
+        ├── Settings.js    ← Detection threshold settings
+        └── WebsiteBlock.js ← DNS website blocking
+```
 
-### Code Splitting
+---
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+## 🗄️ Database Schema
 
-### Analyzing the Bundle Size
+```sql
+packet_entry   ← All captured packets
+attack_list    ← Detected attacks (WARNING/BLOCK)
+block_list     ← Blocked IPs with timestamps
+rule           ← Custom iptables rules
+settings       ← Detection thresholds
+user           ← Admin login credentials
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+---
 
-### Making a Progressive Web App
+## 🚀 Installation
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+### Prerequisites
+- VirtualBox with Ubuntu 24.04 LTS
+- Python 3.x
+- Node.js 16+
+- MySQL 8.0
 
-### Advanced Configuration
+### Backend Setup (on Firewall VM)
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+```bash
+# Install dependencies
+sudo apt install -y python3 python3-pip mysql-server iptables dnsmasq net-tools openssh-server
 
-### Deployment
+# Install Python packages
+sudo pip3 install scapy fastapi uvicorn mysql-connector-python --break-system-packages
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+# Setup MySQL
+sudo mysql
+```
 
-### `npm run build` fails to minify
+```sql
+CREATE DATABASE firewall_db;
+CREATE USER 'firewall_user'@'localhost' IDENTIFIED BY 'your_password';
+GRANT ALL PRIVILEGES ON firewall_db.* TO 'firewall_user'@'localhost';
+FLUSH PRIVILEGES;
+EXIT;
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+```bash
+# Clone and configure
+git clone https://github.com/yourusername/firewall-project.git
+cd firewall-project/firewall_project
+
+# Edit database credentials
+nano database.py
+
+# Edit email settings
+nano notifier.py
+
+# Run the system
+sudo python3 detector.py & python3 -m uvicorn api:app --host 0.0.0.0 --port 8000 & python3 auto_unblock.py
+```
+
+### Frontend Setup (on your machine)
+
+```bash
+cd firewall-frontend
+npm install
+npm start
+```
+
+Open `http://localhost:3000` — Login with `admin` / `admin1234`
+
+---
+
+## 🌐 API Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/stats` | Overview statistics |
+| GET | `/packets` | Recent packet list |
+| GET | `/attacks` | Attack history |
+| GET | `/blocklist` | Blocked IPs |
+| POST | `/blocklist` | Manually block an IP |
+| DELETE | `/blocklist/{ip}` | Unblock an IP |
+| GET | `/rules` | All iptables rules |
+| POST | `/rules` | Add a new rule |
+| DELETE | `/rules/{id}` | Delete a rule |
+| GET | `/settings` | Detection thresholds |
+| PUT | `/settings/{key}` | Update a threshold |
+| GET | `/website-blocks` | Blocked websites |
+| POST | `/website-blocks` | Block a website |
+| DELETE | `/website-blocks/{id}` | Unblock a website |
+| POST | `/login` | Admin authentication |
+
+---
+
+## 🔬 Attack Simulation (Testing)
+
+Run these commands from the **Attacker VM** (`192.168.1.3`)
+
+```bash
+# ICMP Flood
+sudo hping3 -1 --flood 192.168.1.1
+
+# SYN Flood
+sudo hping3 -S --flood 192.168.1.1
+
+# UDP Flood
+sudo hping3 -2 --flood 192.168.1.1
+
+# Port Scan
+sudo nmap -sS 192.168.1.1
+
+# Brute Force (SSH)
+hydra -l admin -P passwords.txt 192.168.1.1 ssh -t 4
+```
+
+---
+
+## ⚙️ Detection Thresholds
+
+Thresholds are configurable from the web dashboard under **Settings**.
+
+| Attack Type | Warning | Block |
+|-------------|---------|-------|
+| ICMP Flood | 25 packets/3s | 50 packets/3s |
+| SYN Flood | 50 packets/3s | 100 packets/3s |
+| UDP Flood | 50 packets/3s | 100 packets/3s |
+| Port Scan | 10 ports/3s | 20 ports/3s |
+| Brute Force | 3 attempts/3s | 5 attempts/3s |
+
+---
+
+## ⚠️ Limitations
+
+This system is designed for **small networks** (home, small office, café). It is **not** suitable for:
+- Enterprise-scale networks
+- Protection against distributed DDoS (multiple IPs)
+- Encrypted traffic inspection (HTTPS, VPN)
+- Application-layer attacks (SQL Injection, XSS)
+- Zero-day attacks
+
+---
+
+## 🔮 Future Improvements
+
+- [ ] Anomaly Detection (behavior-based, not rule-based)
+- [ ] Machine Learning for unknown attack patterns
+- [ ] Deploy on Raspberry Pi for real hardware use
+- [ ] Password hashing (bcrypt)
+- [ ] Rate limiting per IP
+- [ ] GeoIP blocking
+
+---
+
+## 📄 License
+
+This project is for educational purposes as part of a senior thesis.
+
+---
+
+## 👨‍💻 Author
+
+Developed as a Senior Project in partial fulfillment of the requirements for a Bachelor's Degree in Computer Engineering.
