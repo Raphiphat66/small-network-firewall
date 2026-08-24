@@ -4,6 +4,9 @@ import database
 import subprocess
 from collections import defaultdict
 
+packet_buffer = []
+BUFFER_SIZE = 50 
+
 packet_count = defaultdict(lambda: {
     "tcp": 0, "udp": 0, "icmp": 0,
     "ports": set(),
@@ -78,18 +81,29 @@ def send_notification(level, attack_name, src_ip):
         print(f"Error sending notification: {e}")
 
 def save_packet(src_ip, dst_ip, protocol, port):
+    global packet_buffer
+    packet_buffer.append((src_ip, dst_ip, protocol, port, datetime.now()))
+    
+    if len(packet_buffer) >= BUFFER_SIZE:
+        flush_packets()
+
+def flush_packets():
+    global packet_buffer
+    if not packet_buffer:
+        return
     try:
         conn = database.get_connection()
         cursor = conn.cursor()
-        cursor.execute("""
+        cursor.executemany("""
             INSERT INTO packet_entry 
             (source_ip, destination_ip, protocol, port, timestamp)
             VALUES (%s, %s, %s, %s, %s)
-        """, (src_ip, dst_ip, protocol, port, datetime.now()))
+        """, packet_buffer)
         conn.commit()
         conn.close()
+        packet_buffer = []
     except Exception as e:
-        print(f"Error saving packet: {e}")
+        print(f"Error flushing packets: {e}")
 
 def save_attack(src_ip, attack_name, pps, level="BLOCK"):
     try:
@@ -129,6 +143,7 @@ def check_attack(src_ip):
     elapsed = (now - data["last_reset"]).seconds
 
     if elapsed >= 3:
+        flush_packets()
         T = get_threshold()
 
         # ตรวจจับ Brute Force ก่อน

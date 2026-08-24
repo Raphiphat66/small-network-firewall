@@ -37,6 +37,74 @@ class WebsiteBlockRequest(BaseModel):
     domain: str
     reason: str = "Blocked Website"
 
+def build_rule_cmd(action_flag, protocol, port, source_ip, dest_ip, mac_address, direction, action):
+    """สร้างคำสั่ง iptables จาก field ของกฎ 1 แถว (ใช้ร่วมกันทั้งตอน add/delete/sync)"""
+    cmd = ["sudo", "iptables", action_flag, direction]
+    if protocol and protocol != "all":
+        cmd += ["-p", protocol]
+    if source_ip:
+        cmd += ["-s", source_ip]
+    if dest_ip:
+        cmd += ["-d", dest_ip]
+    if mac_address:
+        cmd += ["-m", "mac", "--mac-source", mac_address]
+    if port and protocol != "all":
+        cmd += ["--dport", str(port)]
+    cmd += ["-j", action]
+    return cmd
+
+@app.on_event("startup")
+def sync_iptables_from_db():
+    """
+    กฎ iptables อยู่ใน kernel memory เท่านั้น พอเครื่อง/บริการ restart กฎจะหายหมด
+    แต่ MySQL ยังมีข้อมูลอยู่ ฟังก์ชันนี้จึงดึงกฎ + IP ที่ยัง active จาก DB
+    มา apply เข้า iptables ใหม่ทุกครั้งที่ backend เริ่มทำงาน เพื่อให้ 2 ฝั่งตรงกันเสมอ
+    """
+    try:
+        conn = database.get_connection()
+        cursor = conn.cursor()
+
+        # 1) sync custom rules จากตาราง rule
+        cursor.execute("""
+            SELECT protocol, destination_port, source_ip, dest_ip,
+                   mac_address, direction, action
+            FROM rule WHERE is_active = 1
+        """)
+        rules = cursor.fetchall()
+        synced_rules = 0
+        for protocol, port, source_ip, dest_ip, mac_address, direction, action in rules:
+            cmd = build_rule_cmd("-A", protocol, port, source_ip, dest_ip, mac_address, direction, action)
+            result = subprocess.run(cmd, capture_output=True, text=True)
+            if result.returncode == 0:
+                synced_rules += 1
+            else:
+                print(f"[SYNC ERROR] rule ไม่สามารถ apply ได้: {result.stderr.strip()}")
+
+        # 2) sync IP ที่ยังถูก block อยู่จากตาราง block_list (DISTINCT กันไม่ให้ยิงคำสั่งซ้ำ IP เดิม)
+        cursor.execute("SELECT DISTINCT ip_address FROM block_list WHERE end_time IS NULL")
+        blocked_ips = cursor.fetchall()
+        synced_blocks = 0
+        total_blocks = len(blocked_ips)
+        print(f"[STARTUP SYNC] เจอ {total_blocks} IP ที่ต้อง sync กำลังเริ่ม...")
+        for idx, (ip,) in enumerate(blocked_ips, start=1):
+            result = subprocess.run(["sudo", "iptables", "-C", "INPUT", "-s", ip, "-j", "DROP"], capture_output=True, text=True)
+            if result.returncode == 0:
+                # กฎนี้มีอยู่แล้วใน iptables ไม่ต้อง apply ซ้ำ
+                synced_blocks += 1
+                continue
+            result = subprocess.run(["sudo", "iptables", "-A", "INPUT", "-s", ip, "-j", "DROP"], capture_output=True, text=True)
+            if result.returncode == 0:
+                synced_blocks += 1
+            else:
+                print(f"[SYNC ERROR] block IP {ip} ไม่สามารถ apply ได้: {result.stderr.strip()}")
+            if idx % 20 == 0:
+                print(f"[STARTUP SYNC] ...{idx}/{total_blocks}")
+
+        conn.close()
+        print(f"[STARTUP SYNC] apply กฎกลับเข้า iptables สำเร็จ: {synced_rules}/{len(rules)} rules, {synced_blocks}/{len(blocked_ips)} blocked IPs")
+    except Exception as e:
+        print(f"[STARTUP SYNC ERROR] {e}")
+
 @app.get("/stats")
 def get_stats():
     conn = database.get_connection()
@@ -126,9 +194,19 @@ def get_blocklist():
 @app.post("/blocklist")
 def block_ip(req: BlockRequest):
     try:
-        subprocess.run(["sudo", "iptables", "-A", "INPUT", "-s", req.ip, "-j", "DROP"])
         conn = database.get_connection()
         cursor = conn.cursor()
+        cursor.execute("""
+            SELECT 1 FROM block_list WHERE ip_address = %s AND end_time IS NULL LIMIT 1
+        """, (req.ip,))
+        if cursor.fetchone():
+            conn.close()
+            return {"message": f"{req.ip} ถูกบล็อกอยู่แล้ว"}
+
+        result = subprocess.run(["sudo", "iptables", "-A", "INPUT", "-s", req.ip, "-j", "DROP"], capture_output=True, text=True)
+        if result.returncode != 0:
+            conn.close()
+            return {"error": f"iptables ล้มเหลว: {result.stderr.strip()}"}
         cursor.execute("""
             INSERT INTO block_list (ip_address, attack_name, start_time)
             VALUES (%s, %s, %s)
@@ -185,30 +263,19 @@ def get_rules():
 @app.post("/rules")
 def add_rule(req: RuleRequest):
     try:
-        cmd = ["sudo", "iptables", "-A", req.direction]
-
-        if req.protocol != "all":
-            cmd += ["-p", req.protocol]
-
-        if req.source_ip:
-            cmd += ["-s", req.source_ip]
-
-        if req.dest_ip:
-            cmd += ["-d", req.dest_ip]
-
-        if req.mac_address:
-            cmd += ["-m", "mac", "--mac-source", req.mac_address]
-
-        if req.port and req.protocol != "all":
-            cmd += ["--dport", str(req.port)]
+        cmd = build_rule_cmd("-A", req.protocol, req.port, req.source_ip, req.dest_ip, req.mac_address, req.direction, req.action)
 
         if req.enable_log:
-            log_cmd = cmd.copy()
+            log_cmd = cmd[:-2]  # ตัด -j action ออกก่อนใส่ LOG
             log_cmd += ["-j", "LOG", "--log-prefix", f"[{req.rule_name}] "]
-            subprocess.run(log_cmd)
+            log_result = subprocess.run(log_cmd, capture_output=True, text=True)
+            if log_result.returncode != 0:
+                return {"error": f"iptables (log) ล้มเหลว: {log_result.stderr.strip()}"}
 
-        cmd += ["-j", req.action]
-        subprocess.run(cmd)
+        result = subprocess.run(cmd, capture_output=True, text=True)
+        if result.returncode != 0:
+            # iptables ล้มเหลว ไม่ต้อง insert ลง DB เพราะกฎยังไม่ถูกบังคับใช้จริง
+            return {"error": f"iptables ล้มเหลว: {result.stderr.strip()}"}
 
         conn = database.get_connection()
         cursor = conn.cursor()
@@ -239,25 +306,11 @@ def delete_rule(rule_id: int):
         if rule:
             protocol, port, source_ip, dest_ip, mac_address, direction, action = rule
 
-            cmd = ["sudo", "iptables", "-D", direction]
-
-            if protocol != "all":
-                cmd += ["-p", protocol]
-
-            if source_ip:
-                cmd += ["-s", source_ip]
-
-            if dest_ip:
-                cmd += ["-d", dest_ip]
-
-            if mac_address:
-                cmd += ["-m", "mac", "--mac-source", mac_address]
-
-            if port:
-                cmd += ["--dport", str(port)]
-
-            cmd += ["-j", action]
-            subprocess.run(cmd)
+            cmd = build_rule_cmd("-D", protocol, port, source_ip, dest_ip, mac_address, direction, action)
+            result = subprocess.run(cmd, capture_output=True, text=True)
+            if result.returncode != 0:
+                conn.close()
+                return {"error": f"iptables ล้มเหลว: {result.stderr.strip()}"}
 
             cursor.execute("DELETE FROM rule WHERE rule_id = %s", (rule_id,))
             conn.commit()

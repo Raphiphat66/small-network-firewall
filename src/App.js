@@ -7,6 +7,7 @@ import Rules from './pages/Rules';
 import Login from './pages/Login';
 import WebsiteBlock from './pages/WebsiteBlock';
 import Settings from './pages/Settings';
+import Whitelist from './pages/Whitelist';
 
 function App() {
   const [user, setUser] = useState(null);
@@ -14,7 +15,6 @@ function App() {
     return localStorage.getItem('theme') === 'dark';
   });
 
-  // ใส่/ถอด class "dark" ที่ <html> เมื่อ toggle
   useEffect(() => {
     if (dark) {
       document.documentElement.classList.add('dark');
@@ -62,6 +62,7 @@ function App() {
             <Link to="/" style={linkStyle}>Dashboard</Link>
             <Link to="/logs" style={linkStyle}>Logs</Link>
             <Link to="/blocklist" style={linkStyle}>Block List</Link>
+            <Link to="/whitelist" style={linkStyle}>Whitelist</Link>
             <Link to="/rules" style={linkStyle}>Rules</Link>
             <Link to="/website-blocks" style={linkStyle}>Website Block</Link>
             <Link to="/settings" style={linkStyle}>Settings</Link>
@@ -69,8 +70,6 @@ function App() {
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <span style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>👤 {user}</span>
-
-            
 
             <button
               onClick={() => setUser(null)}
@@ -86,8 +85,7 @@ function App() {
             >
               ออกจากระบบ
             </button>
-            
-            {/* Dark/Light Toggle */}
+
             <button
               onClick={() => setDark(d => !d)}
               title={dark ? 'เปลี่ยนเป็น Light' : 'เปลี่ยนเป็น Dark'}
@@ -120,6 +118,7 @@ function App() {
             <Route path="/" element={<Dashboard />} />
             <Route path="/logs" element={<Logs />} />
             <Route path="/blocklist" element={<BlockList />} />
+            <Route path="/whitelist" element={<Whitelist />} />
             <Route path="/rules" element={<Rules />} />
             <Route path="/website-blocks" element={<WebsiteBlock />} />
             <Route path="/settings" element={<Settings />} />

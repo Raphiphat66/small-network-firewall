@@ -4,7 +4,7 @@ const API_URL = 'http://127.0.0.1:8000';
 
 function Rules() {
   const [rules, setRules] = useState([]);
-  const [newRule, setNewRule] = useState({ rule_name: '', protocol: 'tcp', port: '', source_ip: '', dest_ip: '', mac_address: '', direction: 'INPUT', action: 'DROP', enable_log: false });
+  const [newRule, setNewRule] = useState({ rule_name: '', protocol: 'tcp', port: '', source_ip: '', dest_ip: '', mac_address: '', direction: 'INPUT', action: 'DROP', enable_log: false , position: ''  });
   const [blockIP, setBlockIP] = useState({ ip: '', reason: '' });
 
   useEffect(() => { fetchRules(); }, []);
@@ -19,7 +19,7 @@ function Rules() {
     try {
       const data = await (await fetch(`${API_URL}/rules`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...newRule, port: newRule.port ? parseInt(newRule.port) : null })
+        body: JSON.stringify({ ...newRule, port: newRule.port ? parseInt(newRule.port) : null , position: newRule.position ? parseInt(newRule.position) : null })
       })).json();
       alert(data.message || data.error);
       fetchRules();
@@ -83,6 +83,12 @@ function Rules() {
       <div style={section}>
         <h3 style={{ color: 'var(--text-success)', fontSize: '19px', marginBottom: '20px' }}>➕ เพิ่มกฎใหม่</h3>
         <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap', marginBottom: '16px' }}>
+          <input
+              placeholder="ลำดับ (ถ้าไม่ใส่ = ต่อท้าย)"
+              value={newRule.position}
+              onChange={e => setNewRule({ ...newRule, position: e.target.value })}
+              style={{ ...inputStyle, width: '180px' }}
+          />
           <input placeholder="ชื่อกฎ *" value={newRule.rule_name} onChange={e => setNewRule({ ...newRule, rule_name: e.target.value })} style={{ ...inputStyle, width: '190px' }} />
           <select value={newRule.protocol} onChange={e => setNewRule({ ...newRule, protocol: e.target.value })} style={{ ...inputStyle, cursor: 'pointer' }}>
             <option value="tcp">TCP</option><option value="udp">UDP</option><option value="icmp">ICMP</option><option value="all">ALL</option>
@@ -120,8 +126,8 @@ function Rules() {
           </thead>
           <tbody>
             {rules.map((r, i) => (
-              <tr key={i} style={{ borderBottom: '1px solid var(--border)', backgroundColor: i % 2 === 0 ? 'var(--surface-1)' : 'var(--table-row-alt)' }}>
-                <td style={{ padding: '16px 20px', color: 'var(--text-muted)' }}>{r.id}</td>
+              <tr key={r.id} style={{ borderBottom: '1px solid var(--border)', backgroundColor: i % 2 === 0 ? 'var(--surface-1)' : 'var(--table-row-alt)' }}>
+                <td style={{ padding: '16px 20px', color: 'var(--text-muted)' }}>{i + 1}</td>
                 <td style={{ padding: '16px 20px', color: 'var(--text-primary)', fontWeight: '500' }}>{r.rule_name}</td>
                 <td style={{ padding: '16px 20px', color: 'var(--text-secondary)' }}>{r.protocol?.toUpperCase()}</td>
                 <td style={{ padding: '16px 20px', color: 'var(--text-secondary)' }}>{r.port || '-'}</td>

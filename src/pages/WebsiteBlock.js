@@ -102,8 +102,8 @@ function WebsiteBlock() {
           </thead>
           <tbody>
             {blockedSites.map((site, i) => (
-              <tr key={i} style={{ borderBottom: '1px solid var(--border)', backgroundColor: i % 2 === 0 ? 'var(--surface-1)' : 'var(--table-row-alt)' }}>
-                <td style={{ padding: '12px 16px', color: 'var(--text-muted)' }}>{site.id}</td>
+              <tr key={site.id} style={{ borderBottom: '1px solid var(--border)', backgroundColor: i % 2 === 0 ? 'var(--surface-1)' : 'var(--table-row-alt)' }}>
+                <td style={{ padding: '12px 16px', color: 'var(--text-muted)' }}>{i + 1}</td>
                 <td style={{ padding: '12px 16px' }}>
                   <span style={{ backgroundColor: 'var(--bg-danger)', color: 'var(--text-danger)', padding: '3px 10px', borderRadius: '4px', fontSize: '13px', fontWeight: '500' }}>🚫 {site.domain}</span>
                 </td>
