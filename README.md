@@ -89,7 +89,7 @@ firewall_project/          ← Backend (on Firewall VM)
 ├── notifier.py            ← Email alert system
 ├── auto_unblock.py        ← Auto-unblock IPs after timeout
 ├── api.py                 ← FastAPI REST API
-└── main.py                ← Entry point
+
 
 firewall-frontend/         ← Frontend (React.js)
 └── src/
@@ -99,6 +99,7 @@ firewall-frontend/         ← Frontend (React.js)
         ├── Logs.js        ← Attack history
         ├── BlockList.js   ← Blocked IP management
         ├── Rules.js       ← iptables rule management
+        ├── Whitelist.js
         ├── Settings.js    ← Detection threshold settings
         └── WebsiteBlock.js ← DNS website blocking
 ```
