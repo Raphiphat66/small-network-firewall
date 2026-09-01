@@ -1,10 +1,9 @@
 # Small Firewall Network System
 ### ระบบไฟร์วอลล์สำหรับเครือข่ายขนาดเล็ก
 
-A real-time **Intrusion Detection and Prevention System (IDS/IPS)** built from scratch using Python and Scapy, with a React.js web dashboard for monitoring and managing network security.
+A real-time **Intrusion Detection and Prevention System (IDS/IPS)** built from scratch using Python and tcpdump, with a React.js web dashboard for monitoring and managing network security.
 
-> Senior Project — Computer Science / Information Technology
-
+> Senior Project — Computer Engineering 
 ---
 
 ##  Features
@@ -17,7 +16,7 @@ A real-time **Intrusion Detection and Prevention System (IDS/IPS)** built from s
   - Port Scan
   - Brute Force (SSH)
 - **2-level alert system** — Warning → Block (reduces false positives)
-- **Auto-unblock** after configurable duration (default 30 minutes)
+- **Auto-unblock** after configurable duration 
 - **IP Whitelist** to prevent blocking trusted addresses
 
 ###  Web Dashboard
