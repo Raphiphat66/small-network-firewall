@@ -304,7 +304,7 @@ function Dashboard() {
             IP ที่บล็อก
           </div>
           <div style={{ ...s.statVal, color: 'var(--text-danger)' }}>{stats.total_blocked}</div>
-          <div style={s.statSub}>กำลังบล็อกอยู่</div>
+          <div style={s.statSub}>{selectedDate ? `บล็อกในวันนั้น` : 'กำลังบล็อกอยู่'}</div>
         </div>
         <div style={s.statCard}>
           <div style={s.statLabel}>
