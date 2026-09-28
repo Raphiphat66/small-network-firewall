@@ -225,11 +225,11 @@ Thresholds are configurable from the web dashboard under **Settings**.
 
 | Attack Type | Warning | Block |
 |-------------|---------|-------|
-| ICMP Flood | 25 packets/3s | 50 packets/3s |
-| SYN Flood | 50 packets/3s | 100 packets/3s |
-| UDP Flood | 50 packets/3s | 100 packets/3s |
-| Port Scan | 10 ports/3s | 20 ports/3s |
-| Brute Force | 3 attempts/3s | 5 attempts/3s |
+| ICMP Flood | 25 packets/1s | 50 packets/1s |
+| SYN Flood | 50 packets/1s | 100 packets/1s |
+| UDP Flood | 50 packets/1s | 100 packets/1s |
+| Port Scan | 10 ports/1s | 20 ports/1s |
+| Brute Force | 3 attempts/1s | 5 attempts/1s |
 
 ---
 
